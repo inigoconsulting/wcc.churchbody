@@ -56,6 +56,13 @@ class IChurchBody(form.Schema, IImageScaleTraversable):
         required=False
     )
 
+    form.widget(other_members=DataGridFieldFactory)
+    other_assoc_members = schema.List(
+        title=_(u'Other Associate Members'),
+        value_type=DictRow(title=_(u'Member'), schema=IOtherChurchSchema),
+        required=False
+    )
+
 # Custom content-type class; objects created for this content type will
 # be instances of this class. Use this class to add content-type specific
 # methods and properties. Put methods that are mainly useful for rendering
