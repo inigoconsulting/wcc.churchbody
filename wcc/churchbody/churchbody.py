@@ -5,7 +5,7 @@ from zope import schema
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
-from zope.interface import invariant, Invalid
+from zope.interface import invariant, Invalid, Interface
 
 from z3c.form import group, field
 
@@ -18,24 +18,43 @@ from plone.app.textfield import RichText
 from z3c.relationfield.schema import RelationList, RelationChoice
 from plone.formwidget.contenttree import ObjPathSourceBinder
 
+from collective.z3cform.datagridfield import DataGridFieldFactory, DictRow
+
 from wcc.churchbody import MessageFactory as _
 
 
 # Interface class; used to define content-type schema.
+
+class IOtherChurchSchema(Interface):
+    name = schema.TextLine(title=_(u'Church Name'))
+    country = schema.Choice(
+        title=_(u'Country'),
+        vocabulary='wcc.vocabulary.country'
+    )
 
 class IChurchBody(form.Schema, IImageScaleTraversable):
     """
     A Church Body
     """
 
-    # If you want a schema-defined interface, delete the form.model
-    # line below and delete the matching file in the models sub-directory.
-    # If you want a model-based interface, edit
-    # models/churchbody.xml to define the content type
-    # and add directives here as necessary.
+    member_of = RelationChoice(
+            title=_(u"Member Of"),
+            source=ObjPathSourceBinder(object_provides='wcc.churchbody.churchbody.IChurchBody'),
+            required=False
+    )
 
-    form.model("models/churchbody.xml")
+    assoc_member_of = RelationChoice(
+            title=_(u"Associate Member Of"),
+            source=ObjPathSourceBinder(object_provides='wcc.churchbody.churchbody.IChurchBody'),
+            required=False
+    )
 
+    form.widget(other_members=DataGridFieldFactory)
+    other_members = schema.List(
+        title=_(u'Other Members'),
+        value_type=DictRow(title=_(u'Member'), schema=IOtherChurchSchema),
+        required=False
+    )
 
 # Custom content-type class; objects created for this content type will
 # be instances of this class. Use this class to add content-type specific
