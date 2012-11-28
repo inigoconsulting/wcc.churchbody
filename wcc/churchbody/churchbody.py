@@ -21,7 +21,7 @@ from plone.formwidget.contenttree import ObjPathSourceBinder
 from collective.z3cform.datagridfield import DataGridFieldFactory, DictRow
 
 from wcc.churchbody import MessageFactory as _
-
+from wcc.churchbody.backref import back_references
 
 # Interface class; used to define content-type schema.
 
@@ -56,23 +56,12 @@ class IChurchBody(form.Schema, IImageScaleTraversable):
         required=False
     )
 
-    form.widget(other_members=DataGridFieldFactory)
+    form.widget(other_assoc_members=DataGridFieldFactory)
     other_assoc_members = schema.List(
         title=_(u'Other Associate Members'),
         value_type=DictRow(title=_(u'Member'), schema=IOtherChurchSchema),
         required=False
     )
-
-# Custom content-type class; objects created for this content type will
-# be instances of this class. Use this class to add content-type specific
-# methods and properties. Put methods that are mainly useful for rendering
-# in separate view classes.
-
-class ChurchBody(dexterity.Item):
-    grok.implements(IChurchBody)
-
-    # Add your class methods and properties here
-
 
 # View class
 # The view will automatically use a similarly named template in
@@ -84,8 +73,25 @@ class ChurchBody(dexterity.Item):
 # of this type by uncommenting the grok.name line below or by
 # changing the view class name and template filename to View / view.pt.
 
-class SampleView(grok.View):
+
+class IMemberChurchListing(Interface):
+    pass
+
+class MemberChurchListingAdapter(grok.Adapter):
+    grok.context(IChurchBody)
+    grok.implements(IMemberChurchListing)
+
+    def __init__(self, context):
+        self.context = context
+
+    def members(self):
+        return back_references(self.context, 'member_of')
+
+    def assoc_members(self):
+        return back_references(self.context, 'assoc_member_of')
+
+class Index(dexterity.DisplayForm):
     grok.context(IChurchBody)
     grok.require('zope2.View')
-
-    # grok.name('view')
+    grok.name('view')
+    grok.template('churchbody_view')

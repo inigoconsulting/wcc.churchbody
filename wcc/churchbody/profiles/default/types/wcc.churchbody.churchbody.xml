@@ -16,12 +16,14 @@
 
   <!-- schema and class used for content items -->
   <property name="schema">wcc.churchbody.churchbody.IChurchBody</property> 
-  <property name="klass">wcc.churchbody.churchbody.ChurchBody</property>
+  <property name="klass">plone.dexterity.content.Item</property>
 
   <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
      <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
-   </property>
+     <element value="collective.miscbehaviors.behavior.bodytext.IBodyText"/>
+     <element value="collective.dexteritytextindexer.behavior.IDexterityTextIndexer"/>
+  </property>
 
   <!-- View information -->
   <property name="link_target"></property>
