@@ -30,7 +30,7 @@ setup(name='wcc.churchbody',
           'plone.namedfile [blobs]',
           'collective.miscbehaviors',
           'collective.z3cform.datagridfield',
-          'wcc.vocabularies'
+          'wcc.vocabularies',
           # -*- Extra requirements: -*-
       ],
       extras_require={

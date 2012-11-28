@@ -23,6 +23,9 @@ from collective.z3cform.datagridfield import DataGridFieldFactory, DictRow
 from wcc.churchbody import MessageFactory as _
 from wcc.churchbody.backref import back_references
 
+from zope.component import getUtility
+from zope.schema.interfaces import IVocabularyFactory
+
 # Interface class; used to define content-type schema.
 
 class IOtherChurchSchema(Interface):
@@ -74,24 +77,69 @@ class IChurchBody(form.Schema, IImageScaleTraversable):
 # changing the view class name and template filename to View / view.pt.
 
 
-class IMemberChurchListing(Interface):
+class IChurchBodyDataProvider(Interface):
     pass
 
-class MemberChurchListingAdapter(grok.Adapter):
+class ChurchBodyDataProvider(grok.Adapter):
     grok.context(IChurchBody)
-    grok.implements(IMemberChurchListing)
+    grok.implements(IChurchBodyDataProvider)
 
     def __init__(self, context):
         self.context = context
 
+    @property
+    def title(self):
+        return self.context.title
+
+    @property
+    def text(self):
+        return self.context.text
+
+    @property
+    def member_of(self):
+        if self.context.member_of:
+            return self.context.member_of.to_object
+        return None
+
+    @property
+    def assoc_member_of(self):
+        if self.context.assoc_member_of:
+            return self.context.assoc_member_of.to_object
+        return None
+
+    @property
     def members(self):
         return back_references(self.context, 'member_of')
 
+    @property
     def assoc_members(self):
         return back_references(self.context, 'assoc_member_of')
+
+    @property
+    def other_members(self):
+        return self.context.other_members
+
+    @property
+    def other_assoc_members(self):
+        return self.context.other_assoc_members
 
 class Index(dexterity.DisplayForm):
     grok.context(IChurchBody)
     grok.require('zope2.View')
     grok.name('view')
     grok.template('churchbody_view')
+
+    def provider(self):
+        return IChurchBodyDataProvider(self.context)
+
+    def sort_by_countries(self, members):
+        countries = {}
+        vocabulary = getUtility(IVocabularyFactory,
+                name='wcc.vocabulary.country')(self.context)
+        for member in members:
+            country = vocabulary.getTerm(member['country']).title
+            countries.setdefault(country, [])
+            countries[country].append(member['name'])
+        for val in countries.values():
+            val.sort()
+        return countries
